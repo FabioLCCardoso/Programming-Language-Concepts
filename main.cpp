@@ -1,3 +1,21 @@
+/**
+ * @file main.cpp
+ * @brief Biblioteca compartilhada para cálculo do conjunto de Mandelbrot.
+ *
+ * Este arquivo implementa o núcleo computacional do projeto: o algoritmo
+ * iterativo que determina, para cada ponto do plano complexo, se ele
+ * pertence ao conjunto de Mandelbrot e quantas iterações são necessárias
+ * para divergir.
+ *
+ * A função principal (calculate_mandelbrot) é exportada com linkagem C
+ * para ser chamada pelo Python via ctypes.
+ *
+ * Compilação:
+ *   Linux  : g++ -O2 -shared -fPIC -o main.so main.cpp
+ *   Windows: g++ -O2 -shared -static -o main.dll main.cpp
+ *   Ou simplesmente: make
+ */
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -10,11 +28,19 @@
     #define EXPORT extern "C"
 #endif
 
-/*
- Windows : g++ -O2 -shared -static -o main.dll main.cpp
- Linux : g++ -O2 -shared -fPIC -o main.so main.cpp
-*/
-//calcula o número de iterações do conjunto de Mandelbrot para um ponto (real, imag)
+/**
+ * @brief calcula o número de iterações do conjunto de Mandelbrot para um
+ *        ponto c = (real + imag*i) no plano complexo.
+ *
+ * aplica a recorrência z_{n+1} = z_n^2 + c, partindo de z_0 = 0.
+ * retorna o número da iteração em que |z| > 2 (condição de escape)
+ * ou max_iter caso o ponto não divirja dentro do limite.
+ *
+ * @param real     parte real de c.
+ * @param imag     parte imaginária de c.
+ * @param max_iter número máximo de iterações.
+ * @return         iteração de escape ou max_iter.
+ */
 static int mandelbrot(double real, double imag, int max_iter) {
   double zr = 0;
   double zi = 0;
@@ -35,6 +61,18 @@ static int mandelbrot(double real, double imag, int max_iter) {
   return max_iter;
 }
 
+/**
+ * @brief Calcula o conjunto de Mandelbrot para uma grade de pixels.
+ * A função tem a linkagem C pra ser carregada pelo Python a partir do ctypes.CDLL
+ * @param out       buffer de saída (width * height inteiros).
+ * @param width     kargura da imagem em pixels.
+ * @param height    altura da imagem em pixels.
+ * @param minReal   limite inferior do eixo real.
+ * @param maxReal   limite superior do eixo real.
+ * @param minImag   limite inferior do eixo imaginário.
+ * @param maxImag   limite superior do eixo imaginário.
+ * @param max_iter  número máximo de iterações por ponto.
+ */
 extern "C" void calculate_mandelbrot(int *out, int width, int height, double minReal, double maxReal, double minImag, double maxImag, int max_iter) {
  double realStep = (maxReal - minReal) / (double)width;
  double imagStep = (maxImag - minImag) / (double)height;

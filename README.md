@@ -1,58 +1,68 @@
 # Fractal de Mandelbrot — C++ + Python
 
-Trabalho da disciplina de Conceitos de Linguagens de Programação.
+Trabalho da disciplina de **Conceitos de Linguagens de Programação**.
 
-O projeto implementa o fractal de Mandelbrot utilizando **duas linguagens de programação com vocações distintas**:
+Esse projeto implementa a visualização do fractal de Mandelbrot usando duas linguagens de programação:
 
-- **C++** realiza o cálculo numérico do conjunto
-- **Python** oferece a interface gráfica e apresenta a imagem gerada
+- **C++** — cálculo numérico do conjunto (compilado como biblioteca compartilhada).
+- **Python** — interface gráfica (Tkinter) e caso de estudo também(geração de imagens PNG).
 
-A comunicação entre as linguagens é feita via `ctypes`, que permite ao Python carregar e chamar funções de uma biblioteca compilada em C++.
+A comunicação entre as linguagens é feita via `ctypes`: o Python carrega a `.so`/`.dll` compilada em C++ e invoca diretamente a função `calculate_mandelbrot`.
 
 ---
 
 ## Arquivos do repositório
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `main.cpp` | Biblioteca C++ com o algoritmo de Mandelbrot |
-| `mandelbrotUI.py` | Interface gráfica em Python (Tkinter) |
-| `Makefile` | Compilação e execução do projeto |
-| `documentacao.pdf` | Documentação da implementação |
-| `README.md` | Readme |
+| Arquivo              | Descrição                                                        |
+|----------------------|------------------------------------------------------------------|
+| `main.cpp`           | Biblioteca C++ com o algoritmo de Mandelbrot                     |
+| `mandelbrotUI.py`    | Interface gráfica em Python (Tkinter + ctypes)                   |
+| `mandelbrot_case.py` | Caso de estudo: gera imagens PNG sem abrir a interface           |
+| `Makefile`           | Compilação da biblioteca e execução dos programas                |
+| `documentacao.pdf`   | Documentação da implementação (métodos, linguagens, interface)   |
+| `README.md`          | Este arquivo                                                     |
 
 ---
 
 ## Dependências
 
 ### C++
-- `g++` com suporte a C++17
+
+- `g++` (GCC) com suporte a C++11 ou superior.
 
 ### Python 3
-```
+
+Existem alguns pacotes necessários (instalar via pip):
+
+```bash
 pip install Pillow numpy
 ```
 
-> Tkinter já vem incluso na instalação padrão do Python.  
-> No Ubuntu/Debian, se necessário: `sudo apt install python3-tk`
+O Tkinter já vem incluso na instalação padrão do Python
+Mas no Ubuntu/Debian, caso necessário:
+
+```bash
+sudo apt install python3-tk
+```
 
 ---
 
 ## Como compilar
 
-**Windows:**
-```powershell
-g++ -O2 -shared -static -o main.dll main.cpp
-```
-
-**Linux:**
-```bash
-g++ -O2 -shared -fPIC -o main.so main.cpp
-```
-
-Ou simplesmente:
 ```bash
 make
+```
+
+Isso gera a biblioteca compartilhada `main.so` (Linux) ou `main.dll` (Windows).
+
+Manualmente:
+
+```bash
+# Linux
+g++ -O2 -shared -fPIC -o main.so main.cpp
+
+# Windows
+g++ -O2 -shared -static -o main.dll main.cpp
 ```
 
 ---
@@ -61,32 +71,29 @@ make
 
 ### Interface gráfica
 
-**Windows:**
-```powershell
-py -3.13-32 mandelbrotUI.py
-```
-
-**Linux:**
 ```bash
 make run
 # ou
 python3 mandelbrotUI.py
 ```
 
+### Caso de estudo (sem interface gráfica)
 
-## Como funciona
-
-O Python carrega a biblioteca compilada em C++ usando `ctypes`:
-
-```python
-lib = ctypes.CDLL("main.dll")  # Windows
-lib = ctypes.CDLL("main.so")   # Linux
-
-lib.calculate_mandelbrot(buf, width, height,
-                         minReal, maxReal,
-                         minImag, maxImag,
-                         max_iter)
+```bash
+make case
+# ou
+python3 mandelbrot_case.py
 ```
+
+O caso de estudo gera arquivos `.png` na pasta atual com algumas diferentes regiões e configurações de iteração do fractal.
+
+### Limpeza
+
+```bash
+make clean
+```
+
+remove a biblioteca compilada e as imagens geradas pelo caso de estudo.
 
 O C++ exporta a função com a macro `EXPORT`, que garante compatibilidade entre sistemas:
 
