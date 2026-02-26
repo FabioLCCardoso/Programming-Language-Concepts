@@ -17,7 +17,6 @@ A comunicação entre as linguagens é feita via `ctypes`, que permite ao Python
 |---------|-----------|
 | `main.cpp` | Biblioteca C++ com o algoritmo de Mandelbrot |
 | `mandelbrotUI.py` | Interface gráfica em Python (Tkinter) |
-| `mandelbrot_case.py` | Caso de estudo: gera imagens PNG sem abrir a interface |
 | `Makefile` | Compilação e execução do projeto |
 | `documentacao.pdf` | Documentação da implementação |
 | `README.md` | Este arquivo |
@@ -74,17 +73,6 @@ make run
 python3 mandelbrotUI.py
 ```
 
-### Caso de estudo (sem interface gráfica)
-
-```bash
-make case
-# ou
-python3 mandelbrot_case.py
-```
-
-O caso de estudo gera arquivos PNG na pasta atual com diferentes configurações de iterações e regiões do fractal.
-
----
 
 ## Como funciona
 
