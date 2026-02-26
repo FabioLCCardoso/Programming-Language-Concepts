@@ -19,7 +19,7 @@ A comunicação entre as linguagens é feita via `ctypes`, que permite ao Python
 | `mandelbrotUI.py` | Interface gráfica em Python (Tkinter) |
 | `Makefile` | Compilação e execução do projeto |
 | `documentacao.pdf` | Documentação da implementação |
-| `README.md` | Este arquivo |
+| `README.md` | Readme |
 
 ---
 
