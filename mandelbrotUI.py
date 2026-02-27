@@ -11,7 +11,7 @@ Dependências:
     - Python 3 (com tkinter)
     - numpy
     - Pillow (PIL)
-    - Biblioteca compilada: main.so (Linux) ou main.dll (Windows)
+    - biblioteca compilada: main.so (Linux) ou main.dll (Windows)
 
 Uso:
     python3 mandelbrotUI.py
@@ -109,7 +109,7 @@ class App:
         root.title("Mandelbrot")
         root.resizable(False, False)
 
-        # Controles no topo
+        # controles no topo
         topo = tk.Frame(root, pady=6, padx=8)
         topo.pack(fill=tk.X)
 
@@ -121,9 +121,18 @@ class App:
         tk.Button(topo, text="Renderizar", command=self.renderizar).pack(side=tk.LEFT, padx=4)
         tk.Button(topo, text="Resetar",    command=self.resetar).pack(side=tk.LEFT, padx=4)
 
-        # Canvas
+        # canvas
         self.canvas = tk.Canvas(root, width=self.W, height=self.H, cursor="crosshair")
         self.canvas.pack(padx=8, pady=(0, 4))
+
+        # variáveis para seleção de zoom com o mouse
+        self._sel_start = None   
+        self._sel_rect  = None   
+
+        # Eventos de mouse para zoom por seleção retangular
+        self.canvas.bind("<ButtonPress-1>",   self._on_press)
+        self.canvas.bind("<B1-Motion>",       self._on_drag)
+        self.canvas.bind("<ButtonRelease-1>", self._on_release)
 
         # Barra de status
         self.status = tk.StringVar(value="")
@@ -133,7 +142,7 @@ class App:
         self.renderizar()
 
     def renderizar(self):
-        """Chama a biblioteca C++ para calcular o conjunto e exibe a imagem no canvas."""
+        """chamar a biblioteca C++ para calcular o conjunto e exibe a imagem no canvas."""
         W, H     = self.W, self.H
         max_iter = self.iter_var.get()
         mR, MR, mI, MI = self.bounds
@@ -154,12 +163,62 @@ class App:
         self.status.set(f"Re [{mR:.3f}, {MR:.3f}]  Im [{mI:.3f}, {MI:.3f}]  iter={max_iter}")
 
     def resetar(self):
-        """Restaura os limites padrão e re-renderiza."""
+        """restaura os limites padrão e rerenderiza."""
         self.bounds = self.Bounds_Default.copy()
         self.renderizar()
 
+    def _on_press(self, event):
+        """isso registra o ponto inicial da seleção e cria o retângulo visual."""
+        self._sel_start = (event.x, event.y)
+        if self._sel_rect:
+            self.canvas.delete(self._sel_rect)
+        self._sel_rect = self.canvas.create_rectangle(
+            event.x, event.y, event.x, event.y,
+            outline="white", width=1, dash=(4, 4)
+        )
+
+    def _on_drag(self, event):
+        """atualiza o retângulo de seleção enquanto o mouse é arrastado."""
+        if self._sel_start and self._sel_rect:
+            x0, y0 = self._sel_start
+            self.canvas.coords(self._sel_rect, x0, y0, event.x, event.y)
+
+    def _on_release(self, event):
+        """
+        finaliza a seleção: converte as coordenadas de pixel para o plano
+        complexo, atualiza os limites (bounds) e rerenderiza com zoom.
+        Ignora seleções menores que 5 pixels pra evitar zoom acidental.
+        """
+        if not self._sel_start:
+            return
+
+        x0, y0 = self._sel_start
+        x1, y1 = event.x, event.y
+        self._sel_start = None
+
+        if self._sel_rect:
+            self.canvas.delete(self._sel_rect)
+            self._sel_rect = None
+
+        # ignora seleções muito pequenas
+        if abs(x1 - x0) < 5 or abs(y1 - y0) < 5:
+            return
+
+        # vai garantir que (x0, y0) seja o canto superior esquerdo
+        if x0 > x1:
+            x0, x1 = x1, x0
+        if y0 > y1:
+            y0, y1 = y1, y0
+
+        # converte pixels para coordenadas no plano complexo
+        re0, im0 = self._px(x0, y0)
+        re1, im1 = self._px(x1, y1)
+
+        self.bounds = [re0, re1, im0, im1]
+        self.renderizar()
+
     def _px(self, x, y):
-        """Converte coordenadas de pixel (x, y) para o plano complexo."""
+        """converte as coordenadas de pixel (x, y) para o plano complexo."""
         mR, MR, mI, MI = self.bounds
         return (mR + x / self.W * (MR - mR),
                 mI + y / self.H * (MI - mI))
